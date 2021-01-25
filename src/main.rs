@@ -1,6 +1,41 @@
+use clap::{App, Arg};
+use serde::{Deserialize, Serialize};
+use std::fs::File;
 use std::str::FromStr;
 
-use clap::{App, Arg};
+fn main() {
+    let matches = App::new("gene-conf (gc)")
+        .version("0.0.1")
+        .about("Joona Piirainen <joona.piirainen@gmail.com>")
+        .about("Auto generate boring config boilerplate")
+        .arg(
+            Arg::from("<type of config> 'The type to use'")
+                .possible_values(&["prettier", "p", "typescript", "ts"])
+                .required(true),
+        )
+        .arg(
+            Arg::new("OPTIONS")
+                .about("The options for chosen config type.")
+                .short('o')
+                .takes_value(true),
+        )
+        .get_matches();
+
+    let type_of_config = matches
+        .value_of_t("type of config")
+        .unwrap_or_else(|e| e.exit());
+
+    match type_of_config {
+        Config::Prettier => println!("found Prettier"),
+        Config::TypeScript => println!("found TypeScript"),
+    }
+
+    let options = matches.value_of("OPTIONS").unwrap_or("default");
+
+    println!("options: {}", options);
+
+    let foo = read_prettier(String::from("testPrettier.json")).unwrap();
+}
 
 enum Config {
     Prettier,
@@ -12,27 +47,27 @@ impl FromStr for Config {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "Prettier" => Ok(Config::Prettier),
+            "prettier" => Ok(Config::Prettier),
             "p" => Ok(Config::Prettier),
-            "TypeScript" => Ok(Config::TypeScript),
+            "typescript" => Ok(Config::TypeScript),
             "ts" => Ok(Config::TypeScript),
-            _ => Err("no match")
+            _ => Err("no match"),
         }
     }
 }
 
-fn main() {
-    let m = App::new("gene-conf (gc)")
-        .arg(
-            Arg::from("<type of config> 'The type to use'")
-            .possible_values(&["Prettier", "p", "TypeScript", "ts"]),
-        )
-        .get_matches();
+#[derive(Serialize, Deserialize, Debug)]
+struct PrettierConf {
+    foo: String,
+}
 
-    let t = m.value_of_t("type of config").unwrap_or_else(|e| e.exit());
+fn read_prettier(path: String) -> Result<(), Box<dyn std::error::Error + 'static>> {
+    let file = File::open(path).expect("file should open read only");
 
-    match t {
-       Config::Prettier => println!("found Prettier"),
-       Config::TypeScript => println!("found TypeScript"),
-    }
+    let json: serde_json::Value =
+        serde_json::from_reader(file).expect("file should be proper JSON");
+
+    println!("{}", json.get("foo").expect("foo"));
+
+    Ok(())
 }
