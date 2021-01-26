@@ -1,5 +1,7 @@
+#![allow(non_snake_case)]
 use clap::{App, Arg};
 use serde::{Deserialize, Serialize};
+use std::fs;
 use std::fs::File;
 use std::str::FromStr;
 
@@ -34,7 +36,11 @@ fn main() {
 
     println!("options: {}", options);
 
-    let foo = read_prettier(String::from("testPrettier.json")).unwrap();
+    let pconf = PrettierConf::new(100, true, true, 3, false, String::from("avoid"));
+
+    let pj = serde_json::to_string(&pconf).unwrap();
+
+    fs::write(".prettierrc", pj).unwrap();
 }
 
 enum Config {
@@ -58,7 +64,34 @@ impl FromStr for Config {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct PrettierConf {
-    foo: String,
+    printWidth: u8,
+    singleQuote: bool,
+    useTabs: bool,
+    trailingComma: String,
+    tabWidth: u8,
+    semi: bool,
+    arrowParens: String,
+}
+
+impl PrettierConf {
+    fn new(
+        printWidth: u8,
+        singleQuote: bool,
+        useTabs: bool,
+        tabWidth: u8,
+        semi: bool,
+        arrowParens: String,
+    ) -> Self {
+        PrettierConf {
+            printWidth,
+            singleQuote,
+            useTabs,
+            trailingComma: String::from("es5"),
+            tabWidth,
+            semi,
+            arrowParens,
+        }
+    }
 }
 
 fn read_prettier(path: String) -> Result<(), Box<dyn std::error::Error + 'static>> {
