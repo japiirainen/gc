@@ -2,11 +2,10 @@
 use clap::{App, Arg};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::fs::File;
 use std::str::FromStr;
 
 fn main() {
-    let matches = App::new("gene-conf (gc)")
+    let matches = App::new("gen-conf (gc)")
         .version("0.0.1")
         .about("Joona Piirainen <joona.piirainen@gmail.com>")
         .about("Auto generate boring config boilerplate")
@@ -16,10 +15,49 @@ fn main() {
                 .required(true),
         )
         .arg(
-            Arg::new("OPTIONS")
-                .about("The options for chosen config type.")
-                .short('o')
-                .takes_value(true),
+            Arg::new("pw")
+                .about("what print width to use")
+                .short('p')
+                .takes_value(true)
+                .default_value("100")
+                .required(false),
+        )
+        .arg(
+            Arg::new("sq")
+                .about("if you provide this flag prettier configuration uses single quotes")
+                .short('s')
+                .takes_value(false)
+                .required(false),
+        )
+        .arg(
+            Arg::new("ut")
+                .about("if you provide this flag prettier configuration uses tabs")
+                .short('u')
+                .takes_value(false)
+                .required(false),
+        )
+        .arg(
+            Arg::new("tw")
+                .about("what tab width to use")
+                .short('t')
+                .takes_value(true)
+                .default_value("3")
+                .required(false),
+        )
+        .arg(
+            Arg::new("semi")
+                .about("if you provide this flag prettier configuration uses semi colons")
+                .takes_value(false)
+                .required(false),
+        )
+        .arg(
+            Arg::new("arrowParens")
+                .about("what print width to use")
+                .short('a')
+                .takes_value(true)
+                .possible_values(&["avoid", "always"])
+                .default_value("avoid")
+                .required(false),
         )
         .get_matches();
 
@@ -28,19 +66,35 @@ fn main() {
         .unwrap_or_else(|e| e.exit());
 
     match type_of_config {
-        Config::Prettier => println!("found Prettier"),
+        Config::Prettier => {
+            let pw = matches.value_of("pw").unwrap();
+            let mut sq = false;
+            let mut ut = false;
+            let tw = matches.value_of("tw").unwrap();
+            let mut semi = false;
+            let ap = matches.value_of("arrowParens").unwrap();
+            if matches.is_present("sq") {
+                sq = true
+            }
+            if matches.is_present("ut") {
+                ut = true
+            }
+            if matches.is_present("semi") {
+                semi = true
+            }
+            let pconf = PrettierConf::new(
+                pw.parse::<u8>().unwrap(),
+                sq,
+                ut,
+                tw.parse::<u8>().unwrap(),
+                semi,
+                ap.to_string(),
+            );
+            let pj = serde_json::to_string(&pconf).unwrap();
+            fs::write(".prettierrc.json", pj).unwrap();
+        }
         Config::TypeScript => println!("found TypeScript"),
     }
-
-    let options = matches.value_of("OPTIONS").unwrap_or("default");
-
-    println!("options: {}", options);
-
-    let pconf = PrettierConf::new(100, true, true, 3, false, String::from("avoid"));
-
-    let pj = serde_json::to_string(&pconf).unwrap();
-
-    fs::write(".prettierrc", pj).unwrap();
 }
 
 enum Config {
@@ -92,15 +146,4 @@ impl PrettierConf {
             arrowParens,
         }
     }
-}
-
-fn read_prettier(path: String) -> Result<(), Box<dyn std::error::Error + 'static>> {
-    let file = File::open(path).expect("file should open read only");
-
-    let json: serde_json::Value =
-        serde_json::from_reader(file).expect("file should be proper JSON");
-
-    println!("{}", json.get("foo").expect("foo"));
-
-    Ok(())
 }
