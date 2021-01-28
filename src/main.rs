@@ -59,6 +59,20 @@ fn main() {
                 .default_value("avoid")
                 .required(false),
         )
+        .arg(
+            Arg::new("react")
+                .about("if you provide this flag the tsconfig will be valid for react")
+                .takes_value(false)
+                .short('r')
+                .required(false),
+        )
+        .arg(
+            Arg::new("node")
+                .about("if you provide this flag the tsconfig will be valid for node")
+                .takes_value(false)
+                .short('n')
+                .required(false),
+        )
         .get_matches();
 
     let type_of_config = matches
@@ -90,10 +104,53 @@ fn main() {
                 semi,
                 ap.to_string(),
             );
-            let pj = serde_json::to_string(&pconf).unwrap();
-            fs::write(".prettierrc.json", pj).unwrap();
+            let pc = serde_json::to_string(&pconf).unwrap();
+            fs::write(".prettierrc.json", pc).unwrap();
         }
-        Config::TypeScript => println!("found TypeScript"),
+        Config::TypeScript => {
+            if matches.is_present("node") {
+                let tsc = TsConfigNode::new(
+                    "dist".to_string(),
+                    "es5".to_string(),
+                    "commonjs".to_string(),
+                    true,
+                    true,
+                    true,
+                    true,
+                );
+
+                let conf = TsConfN {
+                    compilerOptions: tsc,
+                    exclude: vec!["node_modules".to_string()],
+                };
+                let tc = serde_json::to_string(&conf).unwrap();
+
+                fs::write("tsconfig.json", tc).unwrap();
+            }
+            if matches.is_present("react") {
+                let tsc = TsConfigReact::new(
+                    "dist".to_string(),
+                    "es5".to_string(),
+                    vec![
+                        "dom".to_string(),
+                        "dom.iterable".to_string(),
+                        "esnext".to_string(),
+                    ],
+                    "commonjs".to_string(),
+                    true,
+                    true,
+                    true,
+                    true,
+                    "react-jsx".to_string(),
+                );
+                let conf = TsConfR {
+                    compilerOptions: tsc,
+                    exclude: vec!["node_modules".to_string()],
+                };
+                let tc = serde_json::to_string(&conf).unwrap();
+                fs::write("tsconfig.json", tc).unwrap();
+            }
+        }
     }
 }
 
@@ -144,6 +201,90 @@ impl PrettierConf {
             tabWidth,
             semi,
             arrowParens,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct TsConfN {
+    compilerOptions: TsConfigNode,
+    exclude: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct TsConfR {
+    compilerOptions: TsConfigReact,
+    exclude: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct TsConfigNode {
+    outDir: String,
+    target: String,
+    module: String,
+    strict: bool,
+    esModuleInterop: bool,
+    skipLibCheck: bool,
+    forceConsistentCasingInFIleNames: bool,
+}
+
+impl TsConfigNode {
+    fn new(
+        outDir: String,
+        target: String,
+        module: String,
+        strict: bool,
+        esModuleInterop: bool,
+        skipLibCheck: bool,
+        forceConsistentCasingInFIleNames: bool,
+    ) -> Self {
+        TsConfigNode {
+            outDir,
+            target,
+            module,
+            strict,
+            esModuleInterop,
+            skipLibCheck,
+            forceConsistentCasingInFIleNames,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct TsConfigReact {
+    outDir: String,
+    target: String,
+    lib: Vec<String>,
+    module: String,
+    strict: bool,
+    esModuleInterop: bool,
+    skipLibCheck: bool,
+    forceConsistentCasingInFIleNames: bool,
+    jsx: String,
+}
+
+impl TsConfigReact {
+    fn new(
+        outDir: String,
+        target: String,
+        lib: Vec<String>,
+        module: String,
+        strict: bool,
+        esModuleInterop: bool,
+        skipLibCheck: bool,
+        forceConsistentCasingInFIleNames: bool,
+        jsx: String,
+    ) -> Self {
+        TsConfigReact {
+            outDir,
+            target,
+            lib,
+            module,
+            strict,
+            esModuleInterop,
+            skipLibCheck,
+            forceConsistentCasingInFIleNames,
+            jsx,
         }
     }
 }
