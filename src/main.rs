@@ -108,25 +108,6 @@ fn main() {
             fs::write(".prettierrc.json", pc).unwrap();
         }
         Config::TypeScript => {
-            if matches.is_present("node") {
-                let tsc = TsConfigNode::new(
-                    "dist".to_string(),
-                    "es5".to_string(),
-                    "commonjs".to_string(),
-                    true,
-                    true,
-                    true,
-                    true,
-                );
-
-                let conf = TsConfN {
-                    compilerOptions: tsc,
-                    exclude: vec!["node_modules".to_string()],
-                };
-                let tc = serde_json::to_string(&conf).unwrap();
-
-                fs::write("tsconfig.json", tc).unwrap();
-            }
             if matches.is_present("react") {
                 let tsc = TsConfigReact::new(
                     "dist".to_string(),
@@ -150,6 +131,23 @@ fn main() {
                 let tc = serde_json::to_string(&conf).unwrap();
                 fs::write("tsconfig.json", tc).unwrap();
             }
+            let tsc = TsConfigNode::new(
+                "dist".to_string(),
+                "es5".to_string(),
+                "commonjs".to_string(),
+                true,
+                true,
+                true,
+                true,
+            );
+
+            let conf = TsConfN {
+                compilerOptions: tsc,
+                exclude: vec!["node_modules".to_string()],
+            };
+            let tc = serde_json::to_string(&conf).unwrap();
+
+            fs::write("tsconfig.json", tc).unwrap();
         }
     }
 }
