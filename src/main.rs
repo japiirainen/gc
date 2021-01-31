@@ -178,7 +178,7 @@ struct TsConfigNode {
     strict: bool,
     esModuleInterop: bool,
     skipLibCheck: bool,
-    forceConsistentCasingInFIleNames: bool,
+    forceConsistentCasingInFileNames: bool,
 }
 
 impl TsConfigNode {
@@ -189,7 +189,7 @@ impl TsConfigNode {
         strict: bool,
         esModuleInterop: bool,
         skipLibCheck: bool,
-        forceConsistentCasingInFIleNames: bool,
+        forceConsistentCasingInFileNames: bool,
     ) -> Self {
         TsConfigNode {
             outDir,
@@ -198,7 +198,7 @@ impl TsConfigNode {
             strict,
             esModuleInterop,
             skipLibCheck,
-            forceConsistentCasingInFIleNames,
+            forceConsistentCasingInFileNames,
         }
     }
 }
@@ -212,7 +212,7 @@ struct TsConfigReact {
     strict: bool,
     esModuleInterop: bool,
     skipLibCheck: bool,
-    forceConsistentCasingInFIleNames: bool,
+    forceConsistentCasingInFileNames: bool,
     jsx: String,
 }
 
@@ -225,7 +225,7 @@ impl TsConfigReact {
         strict: bool,
         esModuleInterop: bool,
         skipLibCheck: bool,
-        forceConsistentCasingInFIleNames: bool,
+        forceConsistentCasingInFileNames: bool,
         jsx: String,
     ) -> Self {
         TsConfigReact {
@@ -236,7 +236,7 @@ impl TsConfigReact {
             strict,
             esModuleInterop,
             skipLibCheck,
-            forceConsistentCasingInFIleNames,
+            forceConsistentCasingInFileNames,
             jsx,
         }
     }
