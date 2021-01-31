@@ -10,53 +10,22 @@ fn main() {
         .about("Joona Piirainen <joona.piirainen@gmail.com>")
         .about("Auto generate boring config boilerplate")
         .arg(
-            Arg::from("<type of config> 'The type to use'")
+            Arg::from("<type of config> 'The type of config'")
                 .possible_values(&["prettier", "p", "typescript", "ts"])
                 .required(true),
         )
         .arg(
-            Arg::new("pw")
-                .about("what print width to use")
-                .short('p')
-                .takes_value(true)
-                .default_value("100")
-                .required(false),
-        )
-        .arg(
-            Arg::new("sq")
-                .about("if you provide this flag prettier configuration uses single quotes")
-                .short('s')
+            Arg::new("tabs")
+                .about(
+                    "if you provide this flag prettier configuration uses tabs, otherwise spaces",
+                )
                 .takes_value(false)
-                .required(false),
-        )
-        .arg(
-            Arg::new("ut")
-                .about("if you provide this flag prettier configuration uses tabs")
-                .short('u')
-                .takes_value(false)
-                .required(false),
-        )
-        .arg(
-            Arg::new("tw")
-                .about("what tab width to use")
-                .short('t')
-                .takes_value(true)
-                .default_value("3")
                 .required(false),
         )
         .arg(
             Arg::new("semi")
                 .about("if you provide this flag prettier configuration uses semi colons")
                 .takes_value(false)
-                .required(false),
-        )
-        .arg(
-            Arg::new("arrowParens")
-                .about("what print width to use")
-                .short('a')
-                .takes_value(true)
-                .possible_values(&["avoid", "always"])
-                .default_value("avoid")
                 .required(false),
         )
         .arg(
@@ -81,31 +50,17 @@ fn main() {
 
     match type_of_config {
         Config::Prettier => {
-            let pw = matches.value_of("pw").unwrap();
-            let mut sq = false;
-            let mut ut = false;
-            let tw = matches.value_of("tw").unwrap();
+            let mut tabs = false;
             let mut semi = false;
-            let ap = matches.value_of("arrowParens").unwrap();
-            if matches.is_present("sq") {
-                sq = true
-            }
-            if matches.is_present("ut") {
-                ut = true
+            if matches.is_present("tabs") {
+                tabs = true
             }
             if matches.is_present("semi") {
                 semi = true
             }
-            let pconf = PrettierConf::new(
-                pw.parse::<u8>().unwrap(),
-                sq,
-                ut,
-                tw.parse::<u8>().unwrap(),
-                semi,
-                ap.to_string(),
-            );
-            let pc = serde_json::to_string(&pconf).unwrap();
-            fs::write(".prettierrc.json", pc).unwrap();
+            let pconf = PrettierConf::new(110, false, tabs, 3, semi, String::from("avoid"));
+            let pconf = serde_json::to_string(&pconf).unwrap();
+            fs::write(".prettierrc.json", pconf).unwrap();
         }
         Config::TypeScript => {
             if matches.is_present("react") {
